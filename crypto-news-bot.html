@@ -6,480 +6,216 @@
 <title>CryptoSense — AI Tahlil</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0a0a0f;
-    --surface: #12121a;
-    --card: #1a1a26;
-    --border: #2a2a40;
-    --accent: #00ff88;
-    --accent2: #ff3366;
-    --accent3: #ffaa00;
-    --text: #e8e8f0;
-    --muted: #666680;
-    --gold: #ffd700;
-  }
-  [data-theme="light"] {
-    --bg: #f0f0f8;
-    --surface: #ffffff;
-    --card: #f8f8ff;
-    --border: #ddddf0;
-    --text: #1a1a2e;
-    --muted: #8888aa;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: 'Syne', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    transition: all 0.3s;
-  }
-  /* HEADER */
-  header {
-    position: sticky; top: 0; z-index: 100;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 12px 20px;
-    display: flex; align-items: center; justify-content: space-between;
-    backdrop-filter: blur(20px);
-  }
-  .logo {
-    font-size: 20px; font-weight: 800; letter-spacing: -0.5px;
-    background: linear-gradient(135deg, var(--accent), #00aaff);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  }
-  .header-controls { display: flex; gap: 10px; align-items: center; }
-  .lang-btn, .theme-btn {
-    background: var(--card); border: 1px solid var(--border);
-    color: var(--text); padding: 6px 12px; border-radius: 20px;
-    font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 600;
-    cursor: pointer; transition: all 0.2s;
-  }
-  .lang-btn:hover, .theme-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .lang-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
-
-  /* MAIN */
-  main { max-width: 900px; margin: 0 auto; padding: 20px 16px; }
-
-  /* CRYPTO SELECTOR */
-  .section-title {
-    font-size: 11px; font-weight: 600; letter-spacing: 2px;
-    color: var(--muted); text-transform: uppercase; margin-bottom: 12px;
-  }
-  .crypto-grid {
-    display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px;
-  }
-  .crypto-chip {
-    background: var(--card); border: 1px solid var(--border);
-    padding: 8px 14px; border-radius: 20px; cursor: pointer;
-    font-size: 13px; font-weight: 600; transition: all 0.2s;
-    display: flex; align-items: center; gap: 6px;
-  }
-  .crypto-chip:hover { border-color: var(--accent); transform: translateY(-1px); }
-  .crypto-chip.selected { background: var(--accent); color: #000; border-color: var(--accent); }
-  .chip-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.6; }
-
-  /* ANALYZE BUTTON */
-  .analyze-btn {
-    width: 100%; padding: 16px; border-radius: 12px;
-    background: linear-gradient(135deg, var(--accent), #00aaff);
-    border: none; color: #000; font-family: 'Syne', sans-serif;
-    font-size: 16px; font-weight: 800; cursor: pointer;
-    transition: all 0.2s; margin-bottom: 24px;
-    letter-spacing: 0.5px;
-  }
-  .analyze-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,255,136,0.3); }
-  .analyze-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-  /* NEWS CARDS */
-  .news-container { display: flex; flex-direction: column; gap: 16px; }
-  .news-card {
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: 16px; overflow: hidden;
-    animation: slideIn 0.4s ease forwards;
-    opacity: 0; transform: translateY(20px);
-  }
-  @keyframes slideIn {
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .news-card:nth-child(1) { animation-delay: 0.1s; }
-  .news-card:nth-child(2) { animation-delay: 0.2s; }
-  .news-card:nth-child(3) { animation-delay: 0.3s; }
-  .news-card:nth-child(4) { animation-delay: 0.4s; }
-  .news-card:nth-child(5) { animation-delay: 0.5s; }
-
-  .card-header {
-    padding: 16px; display: flex; align-items: center;
-    gap: 12px; border-bottom: 1px solid var(--border);
-  }
-  .coin-badge {
-    background: var(--accent); color: #000;
-    padding: 4px 10px; border-radius: 8px;
-    font-family: 'Space Mono', monospace;
-    font-size: 12px; font-weight: 700; flex-shrink: 0;
-  }
-  .coin-badge.negative { background: var(--accent2); color: #fff; }
-  .coin-badge.neutral { background: var(--accent3); color: #000; }
-  .news-title { font-size: 14px; font-weight: 600; line-height: 1.4; flex: 1; }
-  .importance {
-    font-size: 10px; font-weight: 700; letter-spacing: 1px;
-    padding: 3px 8px; border-radius: 6px; flex-shrink: 0;
-  }
-  .importance.high { background: rgba(255,51,102,0.2); color: var(--accent2); }
-  .importance.medium { background: rgba(255,170,0,0.2); color: var(--accent3); }
-  .importance.low { background: rgba(0,255,136,0.2); color: var(--accent); }
-
-  .card-body { padding: 16px; }
-  .analysis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
-  @media(max-width: 500px) { .analysis-grid { grid-template-columns: 1fr; } }
-
-  .analysis-box {
-    border-radius: 10px; padding: 12px;
-  }
-  .analysis-box.good { background: rgba(0,255,136,0.08); border: 1px solid rgba(0,255,136,0.2); }
-  .analysis-box.bad { background: rgba(255,51,102,0.08); border: 1px solid rgba(255,51,102,0.2); }
-  .analysis-label {
-    font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
-    text-transform: uppercase; margin-bottom: 8px;
-  }
-  .analysis-box.good .analysis-label { color: var(--accent); }
-  .analysis-box.bad .analysis-label { color: var(--accent2); }
-  .analysis-points { list-style: none; display: flex; flex-direction: column; gap: 5px; }
-  .analysis-points li {
-    font-size: 12px; line-height: 1.5; color: var(--text);
-    padding-left: 16px; position: relative;
-  }
-  .analysis-box.good .analysis-points li::before { content: "✓"; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
-  .analysis-box.bad .analysis-points li::before { content: "✗"; position: absolute; left: 0; color: var(--accent2); font-weight: 700; }
-
-  .card-footer {
-    display: flex; align-items: center; justify-content: space-between;
-    padding-top: 12px; border-top: 1px solid var(--border);
-    flex-wrap: wrap; gap: 8px;
-  }
-  .verdict {
-    font-size: 11px; font-weight: 700; letter-spacing: 1px;
-    padding: 6px 14px; border-radius: 20px; text-transform: uppercase;
-  }
-  .verdict.bullish { background: rgba(0,255,136,0.15); color: var(--accent); border: 1px solid rgba(0,255,136,0.3); }
-  .verdict.bearish { background: rgba(255,51,102,0.15); color: var(--accent2); border: 1px solid rgba(255,51,102,0.3); }
-  .verdict.neutral { background: rgba(255,170,0,0.15); color: var(--accent3); border: 1px solid rgba(255,170,0,0.3); }
-  .decision-note {
-    font-size: 11px; color: var(--muted); font-style: italic;
-  }
-
-  /* LOADING */
-  .loading {
-    text-align: center; padding: 40px 20px;
-    display: none;
-  }
-  .loading.active { display: block; }
-  .loading-spinner {
-    width: 40px; height: 40px; border-radius: 50%;
-    border: 3px solid var(--border);
-    border-top-color: var(--accent);
-    animation: spin 0.8s linear infinite;
-    margin: 0 auto 16px;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .loading-text { color: var(--muted); font-size: 14px; }
-
-  /* EMPTY STATE */
-  .empty-state {
-    text-align: center; padding: 60px 20px; color: var(--muted);
-  }
-  .empty-icon { font-size: 48px; margin-bottom: 16px; }
-  .empty-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
-  .empty-desc { font-size: 13px; line-height: 1.6; }
-
-  /* ERROR */
-  .error-card {
-    background: rgba(255,51,102,0.1); border: 1px solid rgba(255,51,102,0.3);
-    border-radius: 12px; padding: 16px; color: var(--accent2);
-    font-size: 13px; text-align: center;
-  }
-
-  /* SELECT ALL */
-  .select-controls { display: flex; gap: 8px; margin-bottom: 10px; }
-  .select-all-btn {
-    background: none; border: 1px solid var(--border);
-    color: var(--muted); padding: 4px 10px; border-radius: 10px;
-    font-size: 11px; cursor: pointer; font-family: 'Syne', sans-serif;
-    transition: all 0.2s;
-  }
-  .select-all-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-  .source-tag {
-    font-size: 10px; color: var(--muted); font-family: 'Space Mono', monospace;
-  }
+  :root{--bg:#0a0a0f;--surface:#12121a;--card:#1a1a26;--border:#2a2a40;--accent:#00ff88;--accent2:#ff3366;--accent3:#ffaa00;--text:#e8e8f0;--muted:#666680;}
+  [data-theme="light"]{--bg:#f0f4ff;--surface:#fff;--card:#f8f9ff;--border:#dde1f0;--text:#1a1a2e;--muted:#8888aa;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s;}
+  header{position:sticky;top:0;z-index:100;background:var(--surface);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;}
+  .logo{font-size:18px;font-weight:800;background:linear-gradient(135deg,var(--accent),#00aaff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+  .hdr-r{display:flex;gap:6px;align-items:center;}
+  .lbtn,.tbtn{background:var(--card);border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:20px;font-family:'Syne',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;}
+  .lbtn:hover,.tbtn:hover{border-color:var(--accent);color:var(--accent);}
+  .lbtn.on{background:var(--accent);color:#000;border-color:var(--accent);}
+  main{max-width:860px;margin:0 auto;padding:16px;}
+  .slbl{font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:10px;}
+  .crow{display:flex;gap:8px;margin-bottom:10px;}
+  .cbtn{background:none;border:1px solid var(--border);color:var(--muted);padding:4px 12px;border-radius:10px;font-size:11px;cursor:pointer;font-family:'Syne',sans-serif;transition:all .2s;}
+  .cbtn:hover{border-color:var(--accent);color:var(--accent);}
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:20px;}
+  .chip{background:var(--card);border:1px solid var(--border);padding:7px 14px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:700;transition:all .2s;user-select:none;}
+  .chip:hover{border-color:var(--accent);transform:translateY(-1px);}
+  .chip.on{background:var(--accent);color:#000;border-color:var(--accent);}
+  .gobtn{width:100%;padding:15px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#00ccff);border:none;color:#000;font-family:'Syne',sans-serif;font-size:15px;font-weight:800;cursor:pointer;transition:all .2s;margin-bottom:20px;}
+  .gobtn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,255,136,.3);}
+  .gobtn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+  .loader{text-align:center;padding:40px;display:none;}
+  .loader.on{display:block;}
+  .spin{width:36px;height:36px;border-radius:50%;border:3px solid var(--border);border-top-color:var(--accent);animation:spin .7s linear infinite;margin:0 auto 12px;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .ldrtxt{color:var(--muted);font-size:13px;}
+  .feed{display:flex;flex-direction:column;gap:14px;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;animation:fadeUp .4s ease forwards;opacity:0;transform:translateY(16px);}
+  @keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+  .chead{padding:14px 16px;display:flex;align-items:flex-start;gap:10px;border-bottom:1px solid var(--border);}
+  .ctag{padding:3px 10px;border-radius:7px;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;flex-shrink:0;margin-top:2px;}
+  .ctag.bull{background:rgba(0,255,136,.2);color:var(--accent);}
+  .ctag.bear{background:rgba(255,51,102,.2);color:var(--accent2);}
+  .ctag.neut{background:rgba(255,170,0,.2);color:var(--accent3);}
+  .nttl{font-size:13px;font-weight:600;line-height:1.5;flex:1;}
+  .ibdg{font-size:9px;font-weight:800;letter-spacing:1px;padding:3px 7px;border-radius:6px;flex-shrink:0;margin-top:2px;}
+  .ibdg.H{background:rgba(255,51,102,.15);color:var(--accent2);}
+  .ibdg.M{background:rgba(255,170,0,.15);color:var(--accent3);}
+  .ibdg.L{background:rgba(0,255,136,.15);color:var(--accent);}
+  .cbody{padding:14px 16px;}
+  .prow{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+  .ppill{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-family:'Space Mono',monospace;font-size:11px;}
+  .ppill span{color:var(--muted);}
+  .cup{color:var(--accent);font-weight:700;}
+  .cdn{color:var(--accent2);font-weight:700;}
+  .arow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+  @media(max-width:480px){.arow{grid-template-columns:1fr}}
+  .abox{border-radius:10px;padding:11px;}
+  .abox.g{background:rgba(0,255,136,.07);border:1px solid rgba(0,255,136,.18);}
+  .abox.b{background:rgba(255,51,102,.07);border:1px solid rgba(255,51,102,.18);}
+  .albl{font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:7px;}
+  .abox.g .albl{color:var(--accent);}
+  .abox.b .albl{color:var(--accent2);}
+  .abox ul{list-style:none;display:flex;flex-direction:column;gap:4px;}
+  .abox ul li{font-size:11px;line-height:1.5;padding-left:14px;position:relative;}
+  .abox.g ul li::before{content:"✓";position:absolute;left:0;color:var(--accent);font-weight:700;}
+  .abox.b ul li::before{content:"✗";position:absolute;left:0;color:var(--accent2);font-weight:700;}
+  .cfoot{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding-top:10px;border-top:1px solid var(--border);}
+  .vtag{font-size:10px;font-weight:800;letter-spacing:1px;padding:5px 12px;border-radius:20px;text-transform:uppercase;}
+  .vtag.bull{background:rgba(0,255,136,.12);color:var(--accent);border:1px solid rgba(0,255,136,.25);}
+  .vtag.bear{background:rgba(255,51,102,.12);color:var(--accent2);border:1px solid rgba(255,51,102,.25);}
+  .vtag.neut{background:rgba(255,170,0,.12);color:var(--accent3);border:1px solid rgba(255,170,0,.25);}
+  .dnote{font-size:10px;color:var(--muted);font-style:italic;}
+  .ai-badge{font-size:9px;background:rgba(0,170,255,.15);color:#00aaff;border:1px solid rgba(0,170,255,.25);padding:3px 8px;border-radius:6px;font-weight:700;}
+  .empty{text-align:center;padding:50px 20px;color:var(--muted);}
+  .eico{font-size:44px;margin-bottom:12px;}
+  .ettl{font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px;}
+  .etxt{font-size:12px;line-height:1.6;}
+  .errbox{background:rgba(255,51,102,.1);border:1px solid rgba(255,51,102,.3);border-radius:10px;padding:14px;color:var(--accent2);font-size:12px;text-align:center;}
 </style>
 </head>
 <body>
-
 <header>
   <div class="logo">⬡ CryptoSense</div>
-  <div class="header-controls">
-    <button class="lang-btn active" onclick="setLang('uz')" id="btn-uz">UZ</button>
-    <button class="lang-btn" onclick="setLang('ru')" id="btn-ru">RU</button>
-    <button class="lang-btn" onclick="setLang('en')" id="btn-en">EN</button>
-    <button class="theme-btn" onclick="toggleTheme()" id="theme-toggle">🌙</button>
+  <div class="hdr-r">
+    <button class="lbtn on" onclick="setLang('uz')" id="buz">UZ</button>
+    <button class="lbtn" onclick="setLang('ru')" id="bru">RU</button>
+    <button class="lbtn" onclick="setLang('en')" id="ben">EN</button>
+    <button class="tbtn" onclick="toggleTheme()" id="tbtn">🌙</button>
   </div>
 </header>
-
 <main>
-  <div class="section-title" id="label-select">Kriptolarni tanlang</div>
-
-  <div class="select-controls">
-    <button class="select-all-btn" onclick="selectAll()" id="btn-select-all">Hammasini tanlash</button>
-    <button class="select-all-btn" onclick="clearAll()" id="btn-clear-all">Tozalash</button>
+  <div class="slbl" id="slbl">Kriptolarni tanlang</div>
+  <div class="crow">
+    <button class="cbtn" onclick="selAll()" id="ball">Hammasini tanlash</button>
+    <button class="cbtn" onclick="clrAll()" id="bclr">Tozalash</button>
   </div>
-
-  <div class="crypto-grid" id="crypto-grid"></div>
-
-  <button class="analyze-btn" onclick="analyze()" id="analyze-btn">
-    <span id="analyze-label">🔍 Tahlil qilish</span>
-  </button>
-
-  <div class="loading" id="loading">
-    <div class="loading-spinner"></div>
-    <div class="loading-text" id="loading-text">Yangiliklar tahlil qilinmoqda...</div>
-  </div>
-
-  <div class="news-container" id="news-container">
-    <div class="empty-state">
-      <div class="empty-icon">📡</div>
-      <div class="empty-title" id="empty-title">Kripto tanlang va tahlil bosing</div>
-      <div class="empty-desc" id="empty-desc">AI sizning tanlagan kriptolaringiz bo'yicha yangiliklar topib, yaxshi va yomon tomonlarini tushuntiradi</div>
+  <div class="chips" id="chips"></div>
+  <button class="gobtn" onclick="analyze()" id="gobtn"><span id="golbl">🔍 Tahlil qilish</span></button>
+  <div class="loader" id="loader"><div class="spin"></div><div class="ldrtxt" id="ldrtxt">Yuklanmoqda...</div></div>
+  <div class="feed" id="feed">
+    <div class="empty">
+      <div class="eico">📡</div>
+      <div class="ettl" id="ettl">Kripto tanlang va tahlil bosing</div>
+      <div class="etxt" id="etxt">Real narx + AI tahlil (Groq)</div>
     </div>
   </div>
 </main>
-
 <script>
-const CRYPTOS = [
-  'BTC','ETH','BNB','SOL','XRP',
-  'ADA','AVAX','DOT','LINK','LTC',
-  'UNI','ATOM','NEAR','FIL','ALGO'
-];
+const N8N='https://mrxxusn.app.n8n.cloud/webhook/676cf25f-1885-4f42-b184-9b7432e298b0';
+const COINS=['BTC','ETH','BNB','SOL','XRP','ADA','AVAX','DOT','LINK','LTC','UNI','ATOM','NEAR','FIL','ALGO'];
+const IDS={BTC:'bitcoin',ETH:'ethereum',BNB:'binancecoin',SOL:'solana',XRP:'ripple',ADA:'cardano',AVAX:'avalanche-2',DOT:'polkadot',LINK:'chainlink',LTC:'litecoin',UNI:'uniswap',ATOM:'cosmos',NEAR:'near',FIL:'filecoin',ALGO:'algorand'};
+let sel=new Set(['BTC','ETH']),lang='uz',dark=true;
 
-let selected = new Set(['BTC','ETH']);
-let currentLang = 'uz';
-let isDark = true;
-
-const LANGS = {
-  uz: {
-    labelSelect: 'Kriptolarni tanlang',
-    selectAll: 'Hammasini tanlash',
-    clearAll: 'Tozalash',
-    analyzeBtn: '🔍 Tahlil qilish',
-    loadingText: 'Yangiliklar tahlil qilinmoqda...',
-    emptyTitle: 'Kripto tanlang va tahlil bosing',
-    emptyDesc: 'AI sizning tanlagan kriptolaringiz bo\'yicha yangiliklar topib, yaxshi va yomon tomonlarini tushuntiradi',
-    goodLabel: 'YAXSHI SABABLAR',
-    badLabel: 'YOMON SABABLAR',
-    decisionNote: '👆 Qaror sizga bog\'liq',
-    importance: { high: 'MUHIM', medium: "O'RTA", low: 'PAST' },
-    verdict: { bullish: '📈 O\'SISH KUTILADI', bearish: '📉 TUSHISH XAVFI', neutral: '➡️ NEYTRAL' },
-    selectFirst: 'Kamida 1 ta kripto tanlang!',
-    errorMsg: 'Xatolik yuz berdi. Qayta urinib ko\'ring.'
-  },
-  ru: {
-    labelSelect: 'Выберите криптовалюты',
-    selectAll: 'Выбрать все',
-    clearAll: 'Очистить',
-    analyzeBtn: '🔍 Анализировать',
-    loadingText: 'Анализируем новости...',
-    emptyTitle: 'Выберите крипто и нажмите анализ',
-    emptyDesc: 'ИИ найдёт новости по выбранным криптовалютам и объяснит плюсы и минусы',
-    goodLabel: 'ХОРОШИЕ ПРИЧИНЫ',
-    badLabel: 'ПЛОХИЕ ПРИЧИНЫ',
-    decisionNote: '👆 Решение за вами',
-    importance: { high: 'ВАЖНО', medium: 'СРЕДНЕЕ', low: 'НИЗКОЕ' },
-    verdict: { bullish: '📈 ОЖИДАЕТСЯ РОСТ', bearish: '📉 РИСК ПАДЕНИЯ', neutral: '➡️ НЕЙТРАЛЬНО' },
-    selectFirst: 'Выберите хотя бы 1 криптовалюту!',
-    errorMsg: 'Произошла ошибка. Попробуйте снова.'
-  },
-  en: {
-    labelSelect: 'Select cryptocurrencies',
-    selectAll: 'Select all',
-    clearAll: 'Clear',
-    analyzeBtn: '🔍 Analyze',
-    loadingText: 'Analyzing news...',
-    emptyTitle: 'Select crypto and click analyze',
-    emptyDesc: 'AI will find news for your selected cryptos and explain the pros and cons',
-    goodLabel: 'POSITIVE REASONS',
-    badLabel: 'NEGATIVE REASONS',
-    decisionNote: '👆 Decision is yours',
-    importance: { high: 'HIGH', medium: 'MEDIUM', low: 'LOW' },
-    verdict: { bullish: '📈 BULLISH SIGNAL', bearish: '📉 BEARISH RISK', neutral: '➡️ NEUTRAL' },
-    selectFirst: 'Select at least 1 crypto!',
-    errorMsg: 'An error occurred. Please try again.'
-  }
+const T={
+  uz:{s:'Kriptolarni tanlang',a:'Hammasini tanlash',c:'Tozalash',g:'🔍 Tahlil qilish',l:'AI tahlil qilinmoqda...',et:'Kripto tanlang va tahlil bosing',ex:'Real narx + AI tahlil (Groq)',gl:'YAXSHI SABABLAR',bl:'YOMON SABABLAR',dn:'👆 Qaror sizga bog\'liq',i:{H:'MUHIM',M:"O'RTA",L:'PAST'},v:{bull:'📈 O\'SISH KUTILADI',bear:'📉 TUSHISH XAVFI',neut:'➡️ NEYTRAL'},p:'Narx',ch:'24s',vo:'Hajm',sf:'Kamida 1 ta kripto tanlang!',er:'Xatolik! Internet aloqasini tekshiring.'},
+  ru:{s:'Выберите криптовалюты',a:'Выбрать все',c:'Очистить',g:'🔍 Анализировать',l:'AI анализирует...',et:'Выберите крипто и нажмите анализ',ex:'Реальные цены + AI анализ (Groq)',gl:'ПОЗИТИВНЫЕ ФАКТОРЫ',bl:'НЕГАТИВНЫЕ ФАКТОРЫ',dn:'👆 Решение за вами',i:{H:'ВАЖНО',M:'СРЕДНЕЕ',L:'НИЗКОЕ'},v:{bull:'📈 ОЖИДАЕТСЯ РОСТ',bear:'📉 РИСК ПАДЕНИЯ',neut:'➡️ НЕЙТРАЛЬНО'},p:'Цена',ch:'24ч',vo:'Объём',sf:'Выберите хотя бы 1 крипто!',er:'Ошибка! Проверьте интернет.'},
+  en:{s:'Select cryptocurrencies',a:'Select all',c:'Clear',g:'🔍 Analyze',l:'AI analyzing...',et:'Select crypto and click analyze',ex:'Real prices + AI analysis (Groq)',gl:'POSITIVE FACTORS',bl:'NEGATIVE FACTORS',dn:'👆 Decision is yours',i:{H:'HIGH',M:'MEDIUM',L:'LOW'},v:{bull:'📈 BULLISH SIGNAL',bear:'📉 BEARISH RISK',neut:'➡️ NEUTRAL'},p:'Price',ch:'24h',vo:'Volume',sf:'Select at least 1 crypto!',er:'Error! Check your internet.'}
 };
 
-function setLang(lang) {
-  currentLang = lang;
-  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('btn-' + lang).classList.add('active');
-  updateUI();
+function setLang(l){lang=l;document.querySelectorAll('.lbtn').forEach(b=>b.classList.remove('on'));document.getElementById('b'+l).classList.add('on');ui();}
+function ui(){const L=T[lang];document.getElementById('slbl').textContent=L.s;document.getElementById('ball').textContent=L.a;document.getElementById('bclr').textContent=L.c;document.getElementById('golbl').textContent=L.g;document.getElementById('ldrtxt').textContent=L.l;document.getElementById('ettl').textContent=L.et;document.getElementById('etxt').textContent=L.ex;}
+function toggleTheme(){dark=!dark;document.body.setAttribute('data-theme',dark?'':'light');document.getElementById('tbtn').textContent=dark?'🌙':'☀️';}
+function renderChips(){document.getElementById('chips').innerHTML=COINS.map(c=>`<div class="chip ${sel.has(c)?'on':''}" onclick="tog('${c}')">${c}</div>`).join('');}
+function tog(c){sel.has(c)?sel.delete(c):sel.add(c);renderChips();}
+function selAll(){COINS.forEach(c=>sel.add(c));renderChips();}
+function clrAll(){sel.clear();renderChips();}
+
+function goodR(coin,ch,pd,l){
+  const up=ch>=0,cap=pd.market_cap||0;
+  const r={uz:[up?`24s da +${ch.toFixed(1)}% o'sish`:'Qulay sotib olish narxi',cap>1e10?`Bozor kapitali $${(cap/1e9).toFixed(0)}B barqaror`:'O\'sish potensiali yuqori',`${coin} ishonchli kripto`],ru:[up?`Рост +${ch.toFixed(1)}% за 24ч`:'Хорошая цена для покупки',cap>1e10?`Капитализация $${(cap/1e9).toFixed(0)}B`:'Высокий потенциал',`${coin} надёжная`],en:[up?`+${ch.toFixed(1)}% in 24h`:'Good buy opportunity',cap>1e10?`$${(cap/1e9).toFixed(0)}B cap stable`:'High growth potential',`${coin} reliable`]};
+  return r[l]||r.en;
+}
+function badR(coin,ch,pd,l){
+  const dn=ch<0;
+  const r={uz:[dn?`24s da ${ch.toFixed(1)}% tushish`:'Tushish xavfi bor','Bozor o\'zgaruvchan','Xavf yuqori'],ru:[dn?`Падение ${ch.toFixed(1)}%`:'Риск падения','Рынок волатилен','Высокий риск'],en:[dn?`${ch.toFixed(1)}% drop`:'Decline risk','Market volatile','High risk']};
+  return r[l]||r.en;
 }
 
-function updateUI() {
-  const L = LANGS[currentLang];
-  document.getElementById('label-select').textContent = L.labelSelect;
-  document.getElementById('btn-select-all').textContent = L.selectAll;
-  document.getElementById('btn-clear-all').textContent = L.clearAll;
-  document.getElementById('analyze-label').textContent = L.analyzeBtn;
-  document.getElementById('loading-text').textContent = L.loadingText;
-  document.getElementById('empty-title').textContent = L.emptyTitle;
-  document.getElementById('empty-desc').textContent = L.emptyDesc;
-}
+async function analyze(){
+  if(!sel.size){alert(T[lang].sf);return;}
+  const L=T[lang];
+  const btn=document.getElementById('gobtn');
+  const loader=document.getElementById('loader');
+  const feed=document.getElementById('feed');
+  btn.disabled=true;loader.classList.add('on');feed.innerHTML='';
 
-function toggleTheme() {
-  isDark = !isDark;
-  document.body.setAttribute('data-theme', isDark ? '' : 'light');
-  document.getElementById('theme-toggle').textContent = isDark ? '🌙' : '☀️';
-}
+  try{
+    const coins=[...sel];
+    const ids=coins.map(c=>IDS[c]).join(',');
 
-function renderChips() {
-  const grid = document.getElementById('crypto-grid');
-  grid.innerHTML = CRYPTOS.map(c => `
-    <div class="crypto-chip ${selected.has(c) ? 'selected' : ''}" onclick="toggleCrypto('${c}')">
-      <span class="chip-dot"></span>${c}
-    </div>
-  `).join('');
-}
+    // CoinGecko narx ma'lumotlari
+    const priceRes=await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${ids}&order=market_cap_desc&sparkline=false&price_change_percentage=24h`);
+    const priceData=await priceRes.json();
 
-function toggleCrypto(coin) {
-  if (selected.has(coin)) selected.delete(coin);
-  else selected.add(coin);
-  renderChips();
-}
+    const cards=[];
+    for(const coin of coins){
+      const pd=priceData.find(p=>p.symbol.toUpperCase()===coin)||{};
+      const ch=pd.price_change_percentage_24h||0;
+      const price=pd.current_price?`$${pd.current_price.toLocaleString()}`:'—';
+      const vol=pd.total_volume?`$${(pd.total_volume/1e6).toFixed(1)}M`:'—';
+      const chStr=ch>=0?`+${ch.toFixed(2)}%`:`${ch.toFixed(2)}%`;
+      const chCls=ch>=0?'cup':'cdn';
+      const sent=ch>3?'bull':ch<-3?'bear':'neut';
+      const imp=Math.abs(ch)>5?'H':Math.abs(ch)>2?'M':'L';
 
-function selectAll() { CRYPTOS.forEach(c => selected.add(c)); renderChips(); }
-function clearAll() { selected.clear(); renderChips(); }
+      let g=goodR(coin,ch,pd,lang);
+      let b=badR(coin,ch,pd,lang);
+      let aiUsed=false;
 
-async function analyze() {
-  if (selected.size === 0) {
-    alert(LANGS[currentLang].selectFirst);
-    return;
-  }
+      // n8n orqali Groq AI tahlil
+      try{
+        const langTxt=lang==='uz'?"O'zbek tilida javob ber. Faqat JSON, boshqa hech narsa yozma":lang==='ru'?"Отвечай на русском. Только JSON, ничего лишнего":"Answer in English. Only JSON, nothing else";
+        const prompt=`${langTxt}. ${coin} crypto analysis: price=${price}, 24h change=${chStr}, market cap=$${pd.market_cap?Math.round(pd.market_cap/1e9)+'B':'unknown'}. Return ONLY this JSON: {"good":["reason1","reason2","reason3"],"bad":["reason1","reason2","reason3"]}`;
+        const aiRes=await fetch(N8N,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})});
+        const aiData=await aiRes.json();
+        const txt=(aiData?.choices?.[0]?.message?.content||'').replace(/```json|```/g,'').trim();
+        const start=txt.indexOf('{'),end=txt.lastIndexOf('}');
+        if(start!==-1&&end!==-1){
+          const parsed=JSON.parse(txt.substring(start,end+1));
+          if(parsed.good&&parsed.bad){g=parsed.good;b=parsed.bad;aiUsed=true;}
+        }
+      }catch(e){console.log('AI xato:',e);}
 
-  const btn = document.getElementById('analyze-btn');
-  const loading = document.getElementById('loading');
-  const container = document.getElementById('news-container');
-  const L = LANGS[currentLang];
-
-  btn.disabled = true;
-  loading.classList.add('active');
-  container.innerHTML = '';
-
-  const coins = [...selected].join(', ');
-  const langInstructions = {
-    uz: "O'zbek tilida javob ber",
-    ru: "Отвечай на русском языке",
-    en: "Respond in English"
-  };
-
-  const prompt = `Sen kripto yangiliklar tahlilchisisisan. ${langInstructions[currentLang]}.
-
-Quyidagi kriptovalyutalar uchun so'nggi muhim yangiliklar va bozor tahlilini ber: ${coins}
-
-Har bir kripto uchun JSON formatida quyidagini qaytar:
-[
-  {
-    "coin": "BTC",
-    "news_title": "Yangilik sarlavhasi",
-    "importance": "high|medium|low",
-    "good_reasons": ["sabab 1", "sabab 2", "sabab 3"],
-    "bad_reasons": ["sabab 1", "sabab 2", "sabab 3"],
-    "verdict": "bullish|bearish|neutral",
-    "source": "Manba nomi"
-  }
-]
-
-Faqat JSON qaytargin, boshqa hech narsa yozma. Har bir kripto uchun alohida ob'ekt yaratgin. Real va aniq ma'lumot ber.`;
-
-  try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "anthropic-dangerous-direct-browser-access": "true"
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1000,
-        tools: [{ type: "web_search_20250305", name: "web_search" }],
-        messages: [{ role: "user", content: prompt }]
-      })
-    });
-
-    const data = await response.json();
-    const fullText = data.content.map(i => i.text || "").filter(Boolean).join("\n");
-
-    let cleaned = fullText.replace(/```json|```/g, "").trim();
-    const startIdx = cleaned.indexOf('[');
-    const endIdx = cleaned.lastIndexOf(']');
-    if (startIdx !== -1 && endIdx !== -1) {
-      cleaned = cleaned.substring(startIdx, endIdx + 1);
+      cards.push({coin,price,vol,chStr,chCls,sent,imp,g,b,aiUsed});
     }
 
-    const newsData = JSON.parse(cleaned);
-    loading.classList.remove('active');
-    renderNews(newsData, L);
-
-  } catch (err) {
-    loading.classList.remove('active');
-    container.innerHTML = `<div class="error-card">${L.errorMsg}<br><small>${err.message}</small></div>`;
+    loader.classList.remove('on');
+    feed.innerHTML=cards.map((c,i)=>`
+      <div class="card" style="animation-delay:${i*0.08}s">
+        <div class="chead">
+          <span class="ctag ${c.sent}">${c.coin}</span>
+          <span class="nttl">${c.coin} — ${L.p}: ${c.price} | ${L.ch}: <span class="${c.chCls}">${c.chStr}</span></span>
+          <span class="ibdg ${c.imp}">${L.i[c.imp]}</span>
+        </div>
+        <div class="cbody">
+          <div class="prow">
+            <div class="ppill"><span>${L.p}: </span>${c.price}</div>
+            <div class="ppill"><span>${L.ch}: </span><span class="${c.chCls}">${c.chStr}</span></div>
+            <div class="ppill"><span>${L.vo}: </span>${c.vol}</div>
+          </div>
+          <div class="arow">
+            <div class="abox g"><div class="albl">${L.gl}</div><ul>${c.g.map(r=>`<li>${r}</li>`).join('')}</ul></div>
+            <div class="abox b"><div class="albl">${L.bl}</div><ul>${c.b.map(r=>`<li>${r}</li>`).join('')}</ul></div>
+          </div>
+          <div class="cfoot">
+            <span class="vtag ${c.sent}">${L.v[c.sent]}</span>
+            ${c.aiUsed?'<span class="ai-badge">🤖 Groq AI</span>':''}
+            <span class="dnote">${L.dn}</span>
+          </div>
+        </div>
+      </div>`).join('');
+  }catch(e){
+    loader.classList.remove('on');
+    feed.innerHTML=`<div class="errbox">${L.er}<br><small>${e.message}</small></div>`;
   }
-
-  btn.disabled = false;
+  btn.disabled=false;
 }
-
-function renderNews(newsData, L) {
-  const container = document.getElementById('news-container');
-  container.innerHTML = newsData.map((item, i) => {
-    const badgeClass = item.verdict === 'bullish' ? '' : item.verdict === 'bearish' ? 'negative' : 'neutral';
-    const impClass = item.importance === 'high' ? 'high' : item.importance === 'medium' ? 'medium' : 'low';
-    const verdictClass = item.verdict;
-    const verdictText = L.verdict[item.verdict] || item.verdict;
-    const impText = L.importance[item.importance] || item.importance;
-
-    const goodPoints = (item.good_reasons || []).map(r => `<li>${r}</li>`).join('');
-    const badPoints = (item.bad_reasons || []).map(r => `<li>${r}</li>`).join('');
-
-    return `
-      <div class="news-card" style="animation-delay:${i * 0.1}s">
-        <div class="card-header">
-          <span class="coin-badge ${badgeClass}">${item.coin}</span>
-          <span class="news-title">${item.news_title}</span>
-          <span class="importance ${impClass}">${impText}</span>
-        </div>
-        <div class="card-body">
-          <div class="analysis-grid">
-            <div class="analysis-box good">
-              <div class="analysis-label">${L.goodLabel}</div>
-              <ul class="analysis-points">${goodPoints}</ul>
-            </div>
-            <div class="analysis-box bad">
-              <div class="analysis-label">${L.badLabel}</div>
-              <ul class="analysis-points">${badPoints}</ul>
-            </div>
-          </div>
-          <div class="card-footer">
-            <span class="verdict ${verdictClass}">${verdictText}</span>
-            <span class="decision-note">${L.decisionNote}</span>
-            <span class="source-tag">📰 ${item.source || 'AI Tahlil'}</span>
-          </div>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-// Init
-renderChips();
-updateUI();
+renderChips();ui();
 </script>
 </body>
 </html>
